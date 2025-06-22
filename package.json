@@ -49,11 +49,9 @@
     "test": "run-s test:*",
     "test:lint": "eslint .",
     "test:unit": "vitest --run",
-    "test:types": "node test-types/copy && npm run ts && npm run clean:tests",
+    "test:types": "npm run ts && npm run clean:tests",
     "ts": "run-s ts:*",
-    "ts:default": "cd test-types/default && tsc -p ./tsconfig.json --incremental",
     "ts:jest": "cd test-types/jest && tsc -p ./tsconfig.json --incremental",
-    "ts:jasmine": "cd test-types/jasmine && tsc -p ./tsconfig.json --incremental",
     "watch": "npm run compile -- --watch",
     "prepare": "husky install"
   },
@@ -65,6 +63,7 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
+    "@jest/expect": "^30.0.0",
     "@types/jest": "^30.0.0",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "^24.0.3",
