@@ -266,7 +266,7 @@ interface WdioCustomMatchers<R, T = unknown> extends Record<string, any>{
     /**
      * Check that `WebdriverIO.Mock` was called with the specific parameters
      */
-    toBeRequestedWith(requestedWith: RequestedWith, options?: ExpectWebdriverIO.CommandOptions): Promise<R>    
+    toBeRequestedWith(requestedWith: ExpectWebdriverIO.RequestedWith, options?: ExpectWebdriverIO.CommandOptions): Promise<R>    
 }
 
 /**
@@ -324,18 +324,59 @@ declare namespace ExpectWebdriverIO {
     function setOptions(options: DefaultOptions): void
     function getConfig(): any
 
+    interface SnapshotServiceArgs {
+        updateState?: SnapshotUpdateState
+        resolveSnapshotPath?: (path: string, extension: string) => string
+    }
+
+    class SnapshotService {
+        static initiate(options: SnapshotServiceArgs): ServiceInstance & {
+            results: SnapshotResult[]
+        }
+    }
+    
+    interface SoftFailure {
+        error: Error;
+        matcherName: string;
+        location?: string;
+    }  
+    
+    class SoftAssertService {
+        static getInstance(): SoftAssertService;
+        setCurrentTest(testId: string, testName?: string, testFile?: string): void;
+        clearCurrentTest(): void;
+        getCurrentTestId(): string | null;
+        addFailure(error: Error, matcherName: string): void;
+        getFailures(testId?: string): SoftFailure[];
+        clearFailures(testId?: string): void;
+        assertNoFailures(testId?: string): void;
+    }
+
+    interface SoftAssertionServiceOptions {
+        autoAssertOnTestEnd?: boolean;
+    }
+
+    class SoftAssertionService implements ServiceInstance {
+        constructor(serviceOptions?: SoftAssertionServiceOptions, capabilities?: any, config?: any);
+        beforeTest(test: Test): void;
+        beforeStep(step: PickleStep, scenario: Scenario): void;
+        afterTest(test: Test, context: any, result: TestResult): void;
+        afterStep(step: PickleStep, scenario: Scenario, result: { passed: boolean, error?: Error }): void;
+    }
+
     interface AssertionResult {
         pass: boolean
         message(): string
     }
 
-    const matchers: Map<
-        string,
-        (
-            actual: any,
-            ...expected: any[]
-        ) => Promise<AssertionResult>
-    >
+    // TODO dprevost - to review
+    // const matchers: Map<
+    //     string,
+    //     (
+    //         actual: any,
+    //         ...expected: any[]
+    //     ) => Promise<AssertionResult>
+    // >
 
     interface AssertionHookParams {
         /**
@@ -461,6 +502,30 @@ declare namespace ExpectWebdriverIO {
         gte?: number
     }
 
+    type RequestedWith = {
+        url?: string | ExpectWebdriverIO.PartialMatcher | ((url: string) => boolean)
+        method?: string | Array<string>
+        statusCode?: number | Array<number>
+        requestHeaders?:
+            | Record<string, string>
+            | ExpectWebdriverIO.PartialMatcher
+            | ((headers: Record<string, string>) => boolean)
+        responseHeaders?:
+            | Record<string, string>
+            | ExpectWebdriverIO.PartialMatcher
+            | ((headers: Record<string, string>) => boolean)
+        postData?:
+            | string
+            | ExpectWebdriverIO.JsonCompatible
+            | ExpectWebdriverIO.PartialMatcher
+            | ((r: string | undefined) => boolean)
+        response?:
+            | string
+            | ExpectWebdriverIO.JsonCompatible
+            | ExpectWebdriverIO.PartialMatcher
+            | ((r: string) => boolean)
+    }    
+
     type jsonPrimitive = string | number | boolean | null
     type jsonObject = { [x: string]: jsonPrimitive | jsonObject | jsonArray }
     type jsonArray = Array<jsonPrimitive | jsonObject | jsonArray>
@@ -472,12 +537,6 @@ declare namespace ExpectWebdriverIO {
         asymmetricMatch(...args: any[]): boolean
         toString(): string
     }
-
-    interface SoftFailure {
-        error: Error;
-        matcherName: string;
-        location?: string;
-    }    
 }
 
 declare module 'expect-webdriverio' {
