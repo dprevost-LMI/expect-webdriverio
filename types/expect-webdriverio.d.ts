@@ -334,13 +334,13 @@ declare namespace ExpectWebdriverIO {
             results: SnapshotResult[]
         }
     }
-    
+
     interface SoftFailure {
         error: Error;
         matcherName: string;
         location?: string;
-    }  
-    
+    }
+
     class SoftAssertService {
         static getInstance(): SoftAssertService;
         setCurrentTest(testId: string, testName?: string, testFile?: string): void;
@@ -524,7 +524,7 @@ declare namespace ExpectWebdriverIO {
             | ExpectWebdriverIO.JsonCompatible
             | ExpectWebdriverIO.PartialMatcher
             | ((r: string) => boolean)
-    }    
+    }
 
     type jsonPrimitive = string | number | boolean | null
     type jsonObject = { [x: string]: jsonPrimitive | jsonObject | jsonArray }
