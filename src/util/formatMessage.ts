@@ -157,6 +157,22 @@ ${diffString}
     return msg.trim()
 }
 
+export const formatBeFailureMessage = <T>(
+    subject: string | WebdriverIO.Element | WebdriverIO.ElementArray,
+    compareResults: CompareResult<T>[],
+    context: ExpectWebdriverIO.MatcherContext,
+    options: ExpectWebdriverIO.CommandOptions
+) => {
+    const { isNot = false, expectation } = context
+    const updatedResults = compareResults.map(({ expected: _expected, actual: _actual, value: _value, ...rest }) =>  ({
+        ...rest,
+        expected: not(isNot) + expectation,
+        actual: not(!rest.pass) + expectation,
+        value: not(!rest.pass) + expectation,
+    } satisfies CompareResult<string, string>))
+    return formatFailureMessage(subject, updatedResults, context, '', options)
+}
+
 export const enhanceErrorBe = (
     subject: string | WebdriverIO.Element | WebdriverIO.ElementArray,
     pass: boolean,

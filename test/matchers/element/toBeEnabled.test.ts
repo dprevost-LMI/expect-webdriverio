@@ -70,9 +70,10 @@ describe('toBeEnabled', () => {
                 const result = await defaultContext.toBeEnabled(element)
 
                 expect(result.pass).toBe(false)
-                expect(result.message()).toContain('Expect <fn> to be enabled')
-                expect(result.message()).toContain('Expected: "enabled"')
-                expect(result.message()).toContain('Received: "not enabled"')
+                expect(result.message()).toEqual(`Expect element to be enabled
+
+Expected: "enabled"
+Received: "not enabled"`)
             })
 
             describe('given before/after assertion hooks and options', () => {
@@ -128,9 +129,10 @@ describe('toBeEnabled', () => {
                 const result = await defaultContext.toBeEnabled(element)
 
                 expect(result.pass).toBe(false)
-                expect(result.message()).toContain('Expect <fn> to be enabled for remote "browserA"')
-                expect(result.message()).toContain('Expected: "enabled"')
-                expect(result.message()).toContain('Received: "not enabled"')
+                expect(result.message()).toEqual(`Expect element to be enabled for remote "browserA"
+
+Expected: "enabled"
+Received: "not enabled"`)
             })
 
             test('when failure for multiple elements', async () => {
@@ -140,8 +142,15 @@ describe('toBeEnabled', () => {
                 const result = await defaultContext.toBeEnabled(element)
 
                 expect(result.pass).toBe(false)
-                expect(result.message()).toContain('Expect <fn> to be enabled for remote "browserA"')
-                expect(result.message()).toContain('Expect <fn> to be enabled for remote "browserB"')
+                expect(result.message()).toEqual(`Expect element to be enabled for remote "browserA"
+
+Expected: "enabled"
+Received: "not enabled"
+
+Expect element to be enabled for remote "browserB"
+
+Expected: "enabled"
+Received: "not enabled"`)
             })
         })
     })
@@ -175,9 +184,10 @@ describe('toBeEnabled', () => {
                 const result = await defaultContext.toBeEnabled(element)
 
                 expect(result.pass).toBe(false)
-                expect(result.message()).toContain('Expect <fn> not to be enabled')
-                expect(result.message()).toContain('Expected [not]: "enabled"')
-                expect(result.message()).toContain('Received      : "enabled"')
+                expect(result.message()).toEqual(`Expect element not to be enabled
+
+Expected [not]: "not enabled"
+Received      : "not enabled"`)
             })
         })
 
@@ -208,7 +218,10 @@ describe('toBeEnabled', () => {
                 const result = await defaultContext.toBeEnabled(element)
 
                 expect(result.pass).toBe(false)
-                expect(result.message()).toContain('Expect <fn> not to be enabled for remote "browserA"')
+                expect(result.message()).toContain(`Expect element not to be enabled for remote "browserA"
+
+Expected [not]: "not enabled"
+Received      : "not enabled"`)
             })
         })
     })

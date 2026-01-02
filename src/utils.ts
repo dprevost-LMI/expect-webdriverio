@@ -5,8 +5,8 @@ import { DEFAULT_OPTIONS } from './constants.js'
 import type { WdioElementMaybePromise, WdioMultiRemoteElementMaybePromise } from './types.js'
 import { wrapExpectedWithArray } from './util/elementsUtil.js'
 import { executeCommand } from './util/executeCommand.js'
-import { enhanceError, enhanceErrorBe, formatFailureMessage, numberError } from './util/formatMessage.js'
-import { awaitElement, isMultiRemoteElement, toArray } from './util/multiRemoteUtil.js'
+import { enhanceError, enhanceErrorBe, formatBeFailureMessage, numberError } from './util/formatMessage.js'
+import { isMultiRemoteElement, toArray } from './util/multiRemoteUtil.js'
 
 export type CompareResult<A = unknown, E = unknown> = {
     value: A // actual but sometimes modified (e.g. trimmed, lowercased, etc)
@@ -206,7 +206,7 @@ async function executeMultiRemoteCommandBe(
         options
     )
 
-    const message = formatFailureMessage('element', compareResults.results, this, '', options)
+    const message = formatBeFailureMessage('element', compareResults.results, this, options)
 
     // const message = enhanceErrorBe(element, pass, this, verb, expectation, options)
 
