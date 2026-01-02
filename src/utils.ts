@@ -2,11 +2,11 @@ import deepEql from 'deep-eql'
 import type { ParsedCSSValue } from 'webdriverio'
 import { expect } from 'expect'
 import { DEFAULT_OPTIONS } from './constants.js'
-import type { WdioElementMaybePromise } from './types.js'
+import type { WdioElementMaybePromise, WdioMultiRemoteElementMaybePromise } from './types.js'
 import { wrapExpectedWithArray } from './util/elementsUtil.js'
 import { executeCommand } from './util/executeCommand.js'
-import { enhanceError, enhanceErrorBe, numberError } from './util/formatMessage.js'
-import { toArray } from './util/multiRemoteUtil.js'
+import { enhanceError, enhanceErrorBe, formatFailureMessage, numberError } from './util/formatMessage.js'
+import { awaitElement, isMultiRemoteElement, toArray } from './util/multiRemoteUtil.js'
 
 export type CompareResult<A = unknown, E = unknown> = {
     value: A // actual but sometimes modified (e.g. trimmed, lowercased, etc)
@@ -163,6 +163,56 @@ const waitUntil = async (
         }
 
         return isNot
+    }
+}
+
+async function executeMultiRemoteCommandBe(
+    this: ExpectWebdriverIO.MatcherContext,
+    received: WdioElementMaybePromise | WdioMultiRemoteElementMaybePromise,
+    command: (el: WebdriverIO.Element) => Promise<boolean>,
+    options: ExpectWebdriverIO.CommandOptions
+): ExpectWebdriverIO.AsyncAssertionResult {
+    this.verb = this.verb || 'be'
+    const { isNot } = this
+
+    const elementConditions = async (element: WebdriverIO.Element, instance?: string) => {
+        const result = await command(element)
+        return {
+            value: element,
+            actual: element,
+            expected: true,
+            result,
+            instance
+        } satisfies CompareResult<WebdriverIO.Element, boolean>
+    }
+
+    const awaitedElement = await received as WebdriverIO.MultiRemoteElement | WebdriverIO.Element
+
+    let conditions: (() => Promise<CompareResult<WebdriverIO.Element, boolean>>)[] = []
+    if (isMultiRemoteElement(awaitedElement)) {
+        this.isMultiRemote = true
+        conditions = awaitedElement.instances.reduce((acc:  (() => Promise<CompareResult<WebdriverIO.Element, boolean>>)[], instanceName) => {
+            const element = awaitedElement.getInstance(instanceName)
+            acc.push(() => elementConditions(element, instanceName))
+            return acc
+        }, [])
+    } else {
+        conditions = [() => elementConditions(awaitedElement)]
+    }
+
+    const compareResults = await waitUntilResultSucceed(
+        conditions,
+        isNot,
+        options
+    )
+
+    const message = formatFailureMessage('element', compareResults.results, this, '', options)
+
+    // const message = enhanceErrorBe(element, pass, this, verb, expectation, options)
+
+    return {
+        pass: compareResults.pass,
+        message: () => message,
     }
 }
 
@@ -469,7 +519,7 @@ function aliasFn(
 
 export {
     aliasFn, compareNumbers, enhanceError, executeCommand,
-    executeCommandBe, numberError, waitUntil, waitUntilResultSucceed, wrapExpectedWithArray
+    executeCommandBe, executeMultiRemoteCommandBe, numberError, waitUntil, waitUntilResultSucceed, wrapExpectedWithArray
 }
 
 function replaceActual(

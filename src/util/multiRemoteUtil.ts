@@ -8,6 +8,10 @@ export const isMultiRemote = (browser: WebdriverIO.Browser | WebdriverIO.MultiRe
     return (browser as WebdriverIO.MultiRemoteBrowser).isMultiremote === true
 }
 
+export const isMultiRemoteElement = (element: WebdriverIO.Element | WebdriverIO.MultiRemoteElement): element is WebdriverIO.MultiRemoteElement => {
+    return (element as WebdriverIO.MultiRemoteElement).isMultiremote === true
+}
+
 type BrowserWithExpected<T> = Record<string, {
     browser: Browser;
     expectedValue: T;
@@ -33,4 +37,21 @@ export const mapExpectedValueWithInstances = <T>(browsers: WebdriverIO.Browser |
 
     // TODO multi-remote support: using default could clash if someone use name default, to review later
     return { default: { browser: browsers, expectedValue: expectedValues as T } }
+}
+
+/**
+ * Await element and return the underlying element or elements for multi-remote case
+ * Requires since doing getElement on both type triggers TS error without the explicit if using type guard
+ *
+ * @param element
+ * @returns
+ */
+export const awaitElement = async (element: WebdriverIO.MultiRemoteElement | WebdriverIO.Element | ChainablePromiseElement): Promise<WebdriverIO.Element | WebdriverIO.MultiRemoteElement> => {
+
+    const awaitedElement = await element as WebdriverIO.MultiRemoteElement | WebdriverIO.Element
+    if (isMultiRemoteElement(awaitedElement)) {
+        return awaitedElement
+    }
+
+    return awaitedElement.getElement()
 }

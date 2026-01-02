@@ -7,6 +7,10 @@ export type WdioElementMaybePromise =
 
 export type WdioElements = WebdriverIO.ElementArray | WebdriverIO.Element[]
 
+export type WdioMultiRemoteElementMaybePromise =
+    WebdriverIO.MultiRemoteElement |
+    ChainablePromiseElement
+
 export type WdioElementsMaybePromise =
     WdioElements |
     ChainablePromiseArray

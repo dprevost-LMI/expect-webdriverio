@@ -102,9 +102,9 @@ export const enhanceError = (
  * Formats failure message for multiple compare results
  * TODO multi-remote support: Replace enhanceError with this one everywhere
  */
-export const formatFailureMessage = (
+export const formatFailureMessage = <T>(
     subject: string | WebdriverIO.Element | WebdriverIO.ElementArray,
-    compareResults: CompareResult<string, string | RegExp | WdioAsymmetricMatcher<string>>[],
+    compareResults: CompareResult<T>[],
     context: ExpectWebdriverIO.MatcherContext & { useNotInLabel?: boolean },
     expectedValueArgument2 = '',
     { message = '', containing = false } = {}): string => {

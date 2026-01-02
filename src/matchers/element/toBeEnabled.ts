@@ -1,11 +1,12 @@
-import { executeCommandBe } from '../../utils.js'
+import { executeMultiRemoteCommandBe } from '../../utils.js'
 import { DEFAULT_OPTIONS } from '../../constants.js'
-import type { WdioElementMaybePromise } from '../../types.js'
+import type { WdioElementMaybePromise, WdioMultiRemoteElementMaybePromise } from '../../types.js'
 
 export async function toBeEnabled(
-    received: WdioElementMaybePromise,
+    this: ExpectWebdriverIO.MatcherContext,
+    received: WdioElementMaybePromise | WdioMultiRemoteElementMaybePromise,
     options: ExpectWebdriverIO.CommandOptions = DEFAULT_OPTIONS
-) {
+): Promise<ExpectWebdriverIO.AssertionResult> {
     this.expectation = this.expectation || 'enabled'
 
     await options.beforeAssertion?.({
@@ -13,7 +14,7 @@ export async function toBeEnabled(
         options,
     })
 
-    const result = await executeCommandBe.call(this, received, el => el?.isEnabled(), options)
+    const result = await executeMultiRemoteCommandBe.call(this, received, element => element?.isEnabled(), options)
 
     await options.afterAssertion?.({
         matcherName: 'toBeEnabled',
