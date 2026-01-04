@@ -208,8 +208,6 @@ async function executeMultiRemoteCommandBe(
 
     const message = formatBeFailureMessage('element', compareResults.results, this, options)
 
-    // const message = enhanceErrorBe(element, pass, this, verb, expectation, options)
-
     return {
         pass: compareResults.pass,
         message: () => message,
