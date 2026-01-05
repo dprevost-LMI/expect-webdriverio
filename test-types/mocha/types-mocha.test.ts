@@ -13,6 +13,16 @@ describe('type assertions', () => {
     const networkMock: WebdriverIO.Mock = {} as unknown as WebdriverIO.Mock
 
     const multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser = multiremotebrowser
+    const multiRemoteElement: WebdriverIO.MultiRemoteElement = {} as unknown as WebdriverIO.MultiRemoteElement
+    const multiRemoteElementArray: WebdriverIO.MultiRemoteElement[] = [] as unknown as WebdriverIO.MultiRemoteElement[]
+
+    const customCommandOptions  : ExpectWebdriverIO.CommandOptions = {
+        wait: 0,
+        message: 'Custom error message',
+        interval: 100,
+        beforeAssertion: async () => {},
+        afterAssertion: async () => {}
+    }
 
     // Type assertions
     let expectPromiseVoid: Promise<void>
@@ -205,6 +215,86 @@ describe('type assertions', () => {
                 await expect(true).toBeDisplayed()
                 // @ts-expect-error
                 await expect(true).not.toBeDisplayed()
+            })
+        })
+
+        describe('toBeEnabled', () => {
+
+            describe('Single remote', () => {
+                it('should be supported correctly', async () => {
+                // Element
+                    expectPromiseVoid = expect(element).toBeEnabled()
+                    expectPromiseVoid = expect(element).not.toBeEnabled()
+                    expectPromiseVoid = expect(element).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(element).not.toBeEnabled(customCommandOptions)
+
+                    // Element array
+                    expectPromiseVoid = expect(elementArray).toBeEnabled()
+                    expectPromiseVoid = expect(elementArray).not.toBeEnabled()
+                    expectPromiseVoid = expect(elementArray).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(elementArray).not.toBeEnabled(customCommandOptions)
+                    // Chainable element
+                    expectPromiseVoid = expect(chainableElement).toBeEnabled()
+                    expectPromiseVoid = expect(chainableElement).not.toBeEnabled()
+                    expectPromiseVoid = expect(chainableElement).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(chainableElement).not.toBeEnabled(customCommandOptions)
+
+                    // Chainable element array
+                    expectPromiseVoid = expect(chainableArray).toBeEnabled()
+                    expectPromiseVoid = expect(chainableArray).not.toBeEnabled()
+                    expectPromiseVoid = expect(chainableArray).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(chainableArray).not.toBeEnabled(customCommandOptions)
+
+                    // @ts-expect-error
+                    expectVoid = expect(element).toBeEnabled()
+                    // @ts-expect-error
+                    expectVoid = expect(element).not.toBeEnabled()
+                    // @ts-expect-error
+                    expectVoid = expect(element).toBeEnabled(customCommandOptions)
+                    // @ts-expect-error
+                    expectVoid = expect(element).not.toBeEnabled(customCommandOptions)
+                })
+
+                it('should have ts errors when actual is not an element', async () => {
+                // @ts-expect-error
+                    await expect(browser).toBeEnabled()
+                    // @ts-expect-error
+                    await expect(browser).not.toBeEnabled()
+                    // @ts-expect-error
+                    await expect(browser).toBeEnabled(customCommandOptions)
+                    // @ts-expect-error
+                    await expect(browser).not.toBeEnabled(customCommandOptions)
+
+                    // TODO dprevost to fix soon
+                    // // @ts-expect-error
+                    // await expect(true).toBeEnabled()
+                    // // @ts-expect-error
+                    // await expect(true).not.toBeEnabled()
+                })
+            })
+
+            describe('Multi-remote', () => {
+                it('should be supported correctly', async () => {
+                // Element
+                    expectPromiseVoid = expect(multiRemoteElement).toBeEnabled()
+                    expectPromiseVoid = expect(multiRemoteElement).not.toBeEnabled()
+                    expectPromiseVoid = expect(multiRemoteElement).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(multiRemoteElement).not.toBeEnabled(customCommandOptions)
+
+                    // Element array
+                    expectPromiseVoid = expect(multiRemoteElementArray).toBeEnabled()
+                    expectPromiseVoid = expect(multiRemoteElementArray).not.toBeEnabled()
+                    expectPromiseVoid = expect(multiRemoteElementArray).toBeEnabled(customCommandOptions)
+                    expectPromiseVoid = expect(multiRemoteElementArray).not.toBeEnabled(customCommandOptions)
+
+                    // TODO multi-remote support: Do we need to have chainable support?
+
+                    // TODO multi-remote support: To fix later
+                    // // @ts-expect-error
+                    // expectVoid = expect(multiRemoteElement).toBeEnabled()
+                    // // @ts-expect-error
+                    // expectVoid = expect(multiRemoteElement).not.toBeEnabled()
+                })
             })
         })
 

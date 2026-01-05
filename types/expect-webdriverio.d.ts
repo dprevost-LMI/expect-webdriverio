@@ -52,20 +52,32 @@ type WdioOnlyMaybePromiseLike = ElementPromise | ElementArrayPromise | Chainable
  */
 
 /**
- * Type helpers to be able to targets specific types mostly used in conjunctions with the Type of the `actual` parameter of the `expect`
+ * Single remote type helpers to be able to targets specific types mostly used in conjunctions with the Type of the `actual` parameter of the `expect`
  */
-type ElementOrArrayLike = ElementLike | ElementArrayLike
 type ElementLike = WebdriverIO.Element | ChainablePromiseElement
 type ElementArrayLike = WebdriverIO.ElementArray | ChainablePromiseArray | WebdriverIO.Element[]
+type ElementOrArrayLike = ElementLike | ElementArrayLike
 type MockPromise = Promise<WebdriverIO.Mock>
 
 /**
- * Type helpers allowing to use the function when the expect(actual: T) is of the expected type T.
+ * Multi-remote type helpers to be able to targets specific types mostly used in conjunctions with the Type of the `actual` parameter of the `expect`
+ */
+type MultiRemoteElementLike = WebdriverIO.MultiRemoteElement /*| ChainablePromiseElement TODO dprevost should have this for multi-remote? */
+type MultiRemoteElementArrayLike = /* WebdriverIO.ElementArray | ChainablePromiseArray TODO dprevost | */ WebdriverIO.MultiRemoteElement[]
+type MultiRemoteElementOrArrayLike = MultiRemoteElementLike | MultiRemoteElementLikeArrayLike
+
+/**
+ * Single remote type helpers allowing to use the function when the expect(actual: T) is of the expected type T.
  */
 type FnWhenBrowser<ActualT, Fn> = ActualT extends WebdriverIO.Browser ? Fn : never
-type FnWhenBrowserOrMultiRemote<ActualT, FnBrowser, FnMultiRemote> = ActualT extends WebdriverIO.Browser ? FnBrowser : ActualT extends WebdriverIO.MultiRemoteBrowser ? FnMultiRemote : never
 type FnWhenElementOrArrayLike<ActualT, Fn> = ActualT extends ElementOrArrayLike ? Fn : never
 type FnWhenElementArrayLike<ActualT, Fn> = ActualT extends ElementArrayLike ? Fn : never
+
+/**
+ * Multi-remote type helpers allowing to use the function when the expect(actual: T) is of the expected type T.
+ */
+type FnWhenSingleOrMultiRemoteBrowser<ActualT, FnSingleRemote, FnMultiRemote> = ActualT extends WebdriverIO.Browser ? FnSingleRemote : ActualT extends WebdriverIO.MultiRemoteBrowser ? FnMultiRemote : never
+type FnMultiRemoteWhenElementOrArrayLike<ActualT, FnSingleRemote, FnMultiRemote> = ActualT extends ElementOrArrayLike ? FnSingleRemote : ActualT extends MultiRemoteElementOrArrayLike ? FnMultiRemote : never
 
 /**
  * Same as the other but because of Jasmine and it's expectAsync typing which does not force T to be a promise, then we need to account for `WebdriverIO.Mock
@@ -86,14 +98,13 @@ interface WdioBrowserMatchers<_R, ActualT>{
     /**
      * `WebdriverIO.Browser`, `WebdriverIO.MultiRemoteBrowser` -> `getTitle`
      */
-    toHaveTitle: FnWhenBrowserOrMultiRemote<
-        ActualT,
-        // Browser
+    toHaveTitle: FnWhenSingleOrMultiRemoteBrowser<ActualT,
+        // Browser - Single remote
         (
             title: string | RegExp | ExpectWebdriverIO.PartialMatcher<string>,
             options?: ExpectWebdriverIO.StringOptions,
         ) => Promise<void>,
-        // MultiRemoteBrowser
+        // Multi-remote browsers
         (
             url: MaybeArray<string | RegExp | ExpectWebdriverIO.PartialMatcher<string>>,
             options?: ExpectWebdriverIO.StringOptions,
@@ -235,7 +246,12 @@ interface WdioElementOrArrayMatchers<_R, ActualT = unknown> {
     /**
      * `WebdriverIO.Element` -> `isEnabled`
      */
-    toBeEnabled: FnWhenElementOrArrayLike<ActualT, (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>>
+    toBeEnabled: FnMultiRemoteWhenElementOrArrayLike<ActualT,
+        // Browser - Single remote
+        (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>,
+        // Multi-remote
+        (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>,
+    >
 
     /**
      * `WebdriverIO.Element` -> `isFocused`
