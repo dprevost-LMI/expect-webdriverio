@@ -64,7 +64,7 @@ type MockPromise = Promise<WebdriverIO.Mock>
  */
 type MultiRemoteElementLike = WebdriverIO.MultiRemoteElement /*| ChainablePromiseElement TODO dprevost should have this for multi-remote? */
 type MultiRemoteElementArrayLike = /* WebdriverIO.ElementArray | ChainablePromiseArray TODO dprevost | */ WebdriverIO.MultiRemoteElement[]
-type MultiRemoteElementOrArrayLike = MultiRemoteElementLike | MultiRemoteElementLikeArrayLike
+type MultiRemoteElementOrArrayLike = MultiRemoteElementLike | MultiRemoteElementArrayLike
 
 /**
  * Single remote type helpers allowing to use the function when the expect(actual: T) is of the expected type T.
@@ -250,7 +250,7 @@ interface WdioElementOrArrayMatchers<_R, ActualT = unknown> {
         // Browser - Single remote
         (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>,
         // Multi-remote
-        (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>,
+        (options?: ExpectWebdriverIO.CommandOptions) => Promise<void>
     >
 
     /**

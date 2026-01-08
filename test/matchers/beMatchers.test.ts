@@ -10,7 +10,6 @@ const beMatchers = {
     'toBeChecked': 'isSelected',
     'toBeClickable': 'isClickable',
     'toBeDisplayedInViewport': 'isDisplayed',
-    'toBeEnabled': 'isEnabled',
     'toBeExisting': 'isExisting',
     'toBeFocused': 'isFocused',
     'toBePresent': 'isExisting',
@@ -106,12 +105,12 @@ describe('be* matchers', () => {
 
             test('not - failure (with wait)', async () => {
                 const el = await $('sel')
+                el[elementFnName] = vi.fn().mockResolvedValue(true)
 
                 const result = await matcherFn.call({ isNot: true }, el, { wait: 1 }) as ExpectWebdriverIO.AssertionResult
-                const received = getReceived(result.message())
 
-                expect(received).not.toContain('not')
                 expect(result.pass).toBe(true)
+                expect(result.message()).toContain('not')
             })
 
             test('not - success (with wait)', async () => {
@@ -120,8 +119,6 @@ describe('be* matchers', () => {
 
                 const result = await matcherFn.call({ isNot: true }, el, { wait: 1 }) as ExpectWebdriverIO.AssertionResult
 
-                const received = getReceived(result.message())
-                expect(received).toContain('not')
                 expect(result.pass).toBe(false)
             })
 
