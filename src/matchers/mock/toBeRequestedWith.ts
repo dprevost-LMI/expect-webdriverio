@@ -43,10 +43,12 @@ export async function toBeRequestedWith(
                     statusCodeMatcher(call.response.status, expectedValue.statusCode) &&
                     urlMatcher(call.request.url, expectedValue.url) &&
                     headersMatcher(reduceHeaders(call.request.headers), expectedValue.requestHeaders) &&
-                    headersMatcher(reduceHeaders(call.response.headers), expectedValue.responseHeaders)
-                    // &&
-                    // bodyMatcher(call.postData, expectedValue.postData) &&
-                    // bodyMatcher(call.body, expectedValue.response)
+                    headersMatcher(reduceHeaders(call.response.headers), expectedValue.responseHeaders) &&
+                    /**
+                     * Waiting on issue https://github.com/webdriverio/webdriverio/issues/15237 to bring the feature back.
+                     */
+                    //bodyMatcher(call.postData, expectedValue.postData) &&
+                    ('body' in call ? isDataMatching(call.body, expectedValue.response) : true)
                 ) {
                     return true
                 }
@@ -163,76 +165,76 @@ const headersMatcher = (
 }
 
 /**
- * is postData/response matching an expected condition
+ * is postData/response's body matching an expected condition
  */
-// const bodyMatcher = (
-//     body: string | Buffer | ExpectWebdriverIO.JsonCompatible | undefined,
-//     expected?:
-//         | string
-//         | ExpectWebdriverIO.JsonCompatible
-//         | ExpectWebdriverIO.PartialMatcher
-//         | ((r: string | Buffer | ExpectWebdriverIO.JsonCompatible | undefined) => boolean)
-// ) => {
-//     if (typeof expected === 'undefined') {
-//         return true
-//     }
-//     if (typeof expected === 'function') {
-//         return expected(body)
-//     }
-//     if (typeof body === 'undefined') {
-//         return false
-//     }
+const isDataMatching = (
+    data: string | Buffer | ExpectWebdriverIO.JsonCompatible | undefined,
+    expected?:
+        | string
+        | ExpectWebdriverIO.JsonCompatible
+        | ExpectWebdriverIO.PartialMatcher<unknown>
+        | ((r: string | Buffer | ExpectWebdriverIO.JsonCompatible | undefined) => boolean)
+) => {
+    if (typeof expected === 'undefined') {
+        return true
+    }
+    if (typeof expected === 'function') {
+        return expected(data)
+    }
+    if (typeof data === 'undefined') {
+        return false
+    }
 
-//     let parsedBody = body
-//     if (body instanceof Buffer) {
-//         parsedBody = body.toString()
-//     }
+    let parsedBody = data
+    if (data instanceof Buffer) {
+        parsedBody = data.toString()
+    }
 
-//     // convert postData/body from string to JSON if expected value is JSON-like
-//     if (typeof(body) === 'string' && isExpectedJsonLike(expected)) {
-//         parsedBody = tryParseBody(body)
+    // convert postData/body from string to JSON if expected value is JSON-like
+    if (typeof data === 'string' && isExpectedJsonLike(expected)) {
+        parsedBody = tryParseBody(data)
 
-//         // failed to parse string as JSON
-//         if (parsedBody === null) {
-//             return false
-//         }
-//     }
+        // failed to parse string as JSON
+        if (parsedBody === null) {
+            return false
+        }
+    }
 
-//     return equals(parsedBody, expected)
-// }
+    return equals(parsedBody, expected)
+}
 
-// const isExpectedJsonLike = (
-//     expected:
-//         | string
-//         | ExpectWebdriverIO.JsonCompatible
-//         | ExpectWebdriverIO.PartialMatcher
-//         | undefined
-//         | Function
-// ) => {
-//     if (typeof expected === 'undefined') {
-//         return false
-//     }
+const isExpectedJsonLike = (
+    expected:
+        | string
+        | ExpectWebdriverIO.JsonCompatible
+        | ExpectWebdriverIO.PartialMatcher<unknown>
+        | undefined
+        | Function
+) => {
+    if (typeof expected === 'undefined') {
+        return false
+    }
 
-//     // get matcher sample if expected value is a special matcher like `expect.objectContaining({ foo: 'bar })`
-//     const actualSample = isMatcher(expected)
-//         ? (expected as WdioAsymmetricMatcher).sample
-//         : expected
+    // get matcher sample if expected value is a special matcher like `expect.objectContaining({ foo: 'bar })`
+    const actualSample = isMatcher(expected)
+        ? (expected as WdioAsymmetricMatcher<unknown>).sample
+        : expected
 
-//     return (
-//         Array.isArray(actualSample) ||
-//         (typeof actualSample === 'object' &&
-//             actualSample !== null &&
-//             actualSample instanceof RegExp === false)
-//     )
-// }
+    return (
+        Array.isArray(actualSample) ||
+        (typeof actualSample === 'object' &&
+            actualSample !== null &&
+            actualSample instanceof RegExp === false)
+    )
+}
 
-// const tryParseBody = (jsonString: string | undefined, fallback: any = null) => {
-//     try {
-//         return typeof jsonString === 'undefined' ? fallback : JSON.parse(jsonString)
-//     } catch {
-//         return fallback
-//     }
-// }
+const tryParseBody = (jsonString: string | undefined, fallback: unknown = null) => {
+    try {
+        return typeof jsonString === 'undefined' ? fallback : JSON.parse(jsonString)
+    } catch {
+        return fallback
+    }
+}
 
 /**
  * shorten long url, headers, postData, body

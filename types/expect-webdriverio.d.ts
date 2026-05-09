@@ -832,6 +832,9 @@ declare namespace ExpectWebdriverIO {
             | Record<string, string>
             | ExpectWebdriverIO.PartialMatcher<Record<string, string>>
             | ((headers: Record<string, string>) => boolean)
+        /**
+         * Waiting on issue https://github.com/webdriverio/webdriverio/issues/15237 to bring the feature back.
+         */
         postData?:
             | string
             | ExpectWebdriverIO.JsonCompatible
