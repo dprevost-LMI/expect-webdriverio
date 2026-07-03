@@ -10,6 +10,7 @@ const KEY_LIMIT = 12
 interface RequestMock {
     request: local.NetworkRequestData,
     response: local.NetworkResponseData
+    body?: string
 }
 
 function reduceHeaders(headers: local.NetworkHeader[]) {
@@ -47,7 +48,7 @@ export async function toBeRequestedWith(
                     /**
                      * Waiting on issue https://github.com/webdriverio/webdriverio/issues/15237 to bring the feature back.
                      */
-                    //bodyMatcher(call.postData, expectedValue.postData) &&
+                    // ('postData' in call ? bodyMatcher(call.postData, expectedValue.postData): true) &&
                     ('body' in call ? isDataMatching(call.body, expectedValue.response) : true)
                 ) {
                     return true
@@ -216,9 +217,7 @@ const isExpectedJsonLike = (
     }
 
     // get matcher sample if expected value is a special matcher like `expect.objectContaining({ foo: 'bar })`
-    const actualSample = isMatcher(expected)
-        ? (expected as WdioAsymmetricMatcher<unknown>).sample
-        : expected
+    const actualSample = isAsymmetricMatcher(expected) ? getAsymmetricMatcherValue(expected) : expected
 
     return (
         Array.isArray(actualSample) ||
@@ -240,10 +239,7 @@ const tryParseBody = (jsonString: string | undefined, fallback: unknown = null) 
  * shorten long url, headers, postData, body
  */
 const minifyRequestMock = (
-    requestMock?: {
-        request: local.NetworkRequestData,
-        response: local.NetworkResponseData
-    },
+    requestMock?: RequestMock,
     requestedWith?: ExpectWebdriverIO.RequestedWith
 ) => {
     if (requestMock === undefined) {
@@ -258,9 +254,9 @@ const minifyRequestMock = (
         // postData: typeof requestMock.postData === 'string' && isExpectedJsonLike(requestedWith.postData)
         //     ? tryParseBody(requestMock.postData, requestMock.postData)
         //     : requestMock.postData,
-        // response: typeof requestMock.body === 'string' && isExpectedJsonLike(requestedWith.response)
-        //     ? tryParseBody(requestMock.body, requestMock.body)
-        //     : requestMock.body,
+        response: typeof requestMock.body === 'string' && isExpectedJsonLike(requestedWith?.response)
+            ? tryParseBody(requestMock.body, requestMock.body)
+            : requestMock.body,
     }
 
     deleteUndefinedValues(r, requestedWith)
