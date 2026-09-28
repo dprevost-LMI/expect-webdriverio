@@ -1,0 +1,40 @@
+name: Release Push Test
+
+# Temporary: checks that the bot token pushes a commit and a tag through the ruleset, as release-it does in release.yml.
+# `release-test` is the target branch in the ruleset. Delete this workflow and both branches after the test.
+on:
+  push:
+    branches:
+      - release-test-trigger
+
+permissions:
+  contents: read
+
+jobs:
+  push-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Git Setup
+        run: |
+          git config --global user.email "bot@webdriver.io"
+          git config --global user.name "WebdriverIO Release Bot"
+      - name: Push a commit and a tag as the bot
+        run: |
+          # The same header as the Pre-Release step of release.yml
+          git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOT_TOKEN" | base64 -w0)"
+          TAG="release-test-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git fetch origin release-test
+          git checkout -B release-test origin/release-test
+          git commit --allow-empty --message "Release push test ${TAG}"
+          git tag --annotate --message "Release push test" "$TAG"
+          # The same push as release-it: the commit (checked by the ruleset) and its tag
+          git push --follow-tags origin HEAD:refs/heads/release-test
+          echo "Pushed the commit and ${TAG} as the bot"
+          git push origin ":refs/tags/${TAG}"
+          echo "Deleted ${TAG}"
+        env:
+          BOT_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
