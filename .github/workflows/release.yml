@@ -1,8 +1,26 @@
 name: Manual NPM Publish
 
-# v8 alphas only, until the v8.0.0 release (#2246). v7.x releases come from the v7 branch.
+# v8.x releases. v7.x releases come from the v7 branch.
 on:
   workflow_dispatch:
+    inputs:
+      releaseType:
+        description: "Release type - major, minor or patch (after a pre-release, all three release it as stable: 8.0.0-alpha.3 gives 8.0.0)"
+        required: true
+        type: choice
+        default: "patch"
+        options:
+          - patch
+          - minor
+          - major
+      preRelease:
+        description: If latest release was a pre-release (e.g. X.X.X-alpha.0) and you want to push another one, pick "yes"
+        required: true
+        type: choice
+        default: "no"
+        options:
+          - "yes"
+          - "no"
 
 env:
   NPM_CONFIG_PROVENANCE: true
@@ -59,19 +77,13 @@ jobs:
         run: pnpm run build
         env:
           NODE_ENV: production
-      - name: Pick Version
-        id: version
-        run: |
-          CURRENT=$(node -p "require('./package.json').version")
-          # From a stable version (7.0.0) start 8.0.0-alpha.0, else bump the alpha
-          if [[ "$CURRENT" == *-* ]]; then INCREMENT=""; else INCREMENT="major"; fi
-          OUTPUT=$(pnpm exec release-it $INCREMENT --preRelease=alpha --release-version --ci --npm.skipChecks --no-git.requireCleanWorkingDir)
-          NEXT=$(echo "$OUTPUT" | tail -1)
-          if [[ ! "$NEXT" =~ ^[0-9]+\. ]]; then echo "::error::Cannot compute the next version: '$NEXT'"; exit 1; fi
-          if [[ ! "$NEXT" =~ ^8\.0\.0-alpha\. ]]; then echo "::error::Next version $NEXT is not a v8 alpha: this workflow releases only 8.0.0-alpha.N"; exit 1; fi
-          echo "Releasing $NEXT"
-          echo "increment=$INCREMENT" >> "$GITHUB_OUTPUT"
-      - name: Pre-Release
-        run: pnpm exec release-it ${{ steps.version.outputs.increment }} --preRelease=alpha --github.release --github.preRelease --github.makeLatest=false --ci --npm.skipChecks --no-git.requireCleanWorkingDir --npm.tag=next
+      - name: Release
+        run: pnpm exec release-it ${{ inputs.releaseType }} --github.release --ci --npm.skipChecks --no-git.requireCleanWorkingDir --npm.tag=latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ inputs.preRelease == 'no' }}
+      - name: Pre-Release
+        run: pnpm exec release-it --preRelease=alpha --github.release --github.preRelease --github.makeLatest=false --ci --npm.skipChecks --no-git.requireCleanWorkingDir --npm.tag=next
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ inputs.preRelease == 'yes' }}
